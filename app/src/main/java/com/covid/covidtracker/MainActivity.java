@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.icu.util.Calendar;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,23 +29,35 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
-    private TextView date,total_confirm,toady_confirm,total_active,total_recovered,today_recovered,total_death,toady_death,total_tests;
+    private TextView cname,date,total_confirm,toady_confirm,total_active,total_recovered,today_recovered,total_death,toady_death,total_tests;
     private List<CountryData> list;
     private PieChart pieChart;
+
+    String country = "India";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         list = new ArrayList<>();
+        if (getIntent().getStringExtra("country")!=null){
+            country = getIntent().getStringExtra("country");
+        }
+
+
         init();
+
+        cname.setText(country);
+        cname.setOnClickListener(v->
+                startActivity(new Intent(MainActivity.this,CountryActivity.class)));
         ApiUtilites.getApiInterface().getCountryData().enqueue(new Callback<List<CountryData>>() {
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void onResponse(Call<List<CountryData>> call, Response<List<CountryData>> response) {
 
                 list.addAll(response.body());
+
                 for (int i =0;i<list.size();i++){
-                    if (list.get(i).getCountry().equals("India")){
+                    if (list.get(i).getCountry().equals(country)){
                         int confirm =Integer.parseInt(list.get(i).getCases());
                         int active =Integer.parseInt(list.get(i).getActive());
                         int death =Integer.parseInt(list.get(i).getDeaths());
@@ -73,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(@NonNull Call<List<CountryData>> call, @NonNull Throwable t) {
-                Toast.makeText(MainActivity.this, "Error:"+t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Error:"+t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -98,8 +111,10 @@ public class MainActivity extends AppCompatActivity {
         total_active = findViewById(R.id.total_active);
         today_recovered = findViewById(R.id.today_recovered);
         total_recovered = findViewById(R.id.total_recovered);
+        total_tests = findViewById(R.id.total_test);
         pieChart = findViewById(R.id.piechart);
         date = findViewById(R.id.date);
+        cname = findViewById(R.id.cname);
 
     }
 }
